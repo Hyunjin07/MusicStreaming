@@ -11,6 +11,7 @@
         align-items: center;
         padding-top: 50px; /* 검색창을 위로 이동 */
         background-color: black; /* 배경색 설정 */
+        opacity: 0.9;
       }
 
       h1 {
@@ -26,6 +27,17 @@
       #searchButton {
         height: 4vh;
         width: 7vh;
+        background-color: black;
+        color: white;
+        border: white solid 1px;
+        border-radius: 2px;
+      }
+      #searchButton:hover {
+        height: 4vh;
+        width: 7vh;
+        cursor: pointer;
+        background-color: white;
+        color: black;
       }
 
       #playlist {
@@ -35,7 +47,8 @@
         position: fixed;
         top: 0;
         left: 0;
-        background-color: #333; /* 플레이리스트 배경색 설정 */
+        background-color: #565353; /* 플레이리스트 배경색 설정 */
+        opacity: 0.9;
         color: white;
         padding: 20px;
         box-sizing: border-box;
@@ -83,6 +96,34 @@
         flex-wrap: wrap;
         justify-content: center; /* 결과를 가운데 정렬 */
       }
+      #streaming {
+        text-decoration: none;
+        color: white;
+      }
+      .btn:hover {
+        background-color: white;
+        color: black;
+        border: white 1px solid;
+        cursor: pointer;
+      }
+      .btn {
+        border: 2px solid white;
+        color: white;
+        margin-top: 10px;
+        border-radius: 2px;
+        background-color: black;
+      }
+
+      #btn cursor {
+        color: black;
+        background-color: white;
+        border: black 1px solid;
+        border-radius: 2px;
+      }
+      #icon {
+        width: 37px;
+        height: 30px;
+      }
     </style>
   </head>
   <body>
@@ -120,15 +161,16 @@
         playlistDiv.innerHTML = "<h2>Playlist</h2>";
 
         if (playlist.length === 0) {
-          playlistDiv.innerHTML += "플레이리스트에 곡이 없습니다.";
+          playlistDiv.innerHTML += "No any Playlist";
         } else {
           playlist.forEach(function (track, index) {
             playlistDiv.innerHTML += `
           <div class="playlist-item">
             <img src="${track.images.coverart}" alt="${track.title}">
             <div>
-              <p>${track.title} by ${track.subtitle}</p>
-              <button onclick="removeFromPlaylist(${index})">삭제</button>
+              <p>${track.title}</p>  
+              <p>${track.subtitle}</p>
+              <button class= "btn" onclick="removeFromPlaylist(${index})">Remove</button>
             </div>
           </div>
         `;
@@ -186,13 +228,12 @@
 
           resultElement.innerHTML = `
             <img src="${imageUrl}" alt="${title} by ${artist}">
-            <p><strong>Title: ${title}</strong></p>
-            <p>Artist: ${artist}</p>
-            <a href="${streamingLink}" target="_blank">Listen on Apple Music</a>
-            <button onclick='addToPlaylist(${JSON.stringify(track).replace(
-              /'/g,
-              "&apos;"
-            )})'>Add to Playlist</button>
+            <p><strong> ${title}</strong></p>
+            <p>${artist}</p>
+            <a id="streaming" href="${streamingLink}" target="_blank"><img id="icon" src="playIcon.png"></a>
+            <button class="btn" onclick='addToPlaylist(${JSON.stringify(
+              track
+            ).replace(/'/g, "&apos;")})'>Add</button>
           `;
 
           resultsDiv.appendChild(resultElement);
