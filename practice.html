@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Track Finder</title>
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 50px; /* 검색창을 위로 이동 */
+        background-color: black; /* 배경색 설정 */
+      }
+
+      h1 {
+        color: white;
+      }
+
+      #searchInput {
+        height: 3.5vh;
+        width: 30vh;
+        border-radius: 6px;
+      }
+
+      #searchButton {
+        height: 4vh;
+        width: 7vh;
+      }
+
+      #playlist {
+        width: 20%;
+        height: 100%;
+        overflow-y: auto; /* 플레이리스트가 화면 크기보다 클 경우 스크롤 표시 */
+        position: fixed;
+        top: 0;
+        left: 0;
+        background-color: #333; /* 플레이리스트 배경색 설정 */
+        color: white;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+
+      #playlist .track {
+        margin-bottom: 10px;
+      }
+
+      .card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 10%; /* 카드의 너비 설정 */
+        padding: 10px;
+        margin: 10px;
+        background-color: black;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 그림자 효과 추가 */
+        border-radius: 5px;
+      }
+
+      .card img {
+        width: 100%; /* 이미지를 카드 너비에 맞게 조정 */
+        border-radius: 5px;
+      }
+
+      .card p {
+        margin: 5px 0;
+        color: white;
+        text-shadow: #333;
+      }
+      .playlist-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .playlist-item img {
+        width: 50px;
+        height: 50px;
+        margin-right: 10px;
+      }
+
+      #results {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center; /* 결과를 가운데 정렬 */
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Track Finder</h1>
+    <div style="text-align: center">
+      <input type="text" id="searchInput" placeholder="Enter search keyword" />
+      <button id="searchButton" onclick="searchMusic()">Search</button>
+    </div>
+    <div id="playlist">
+      <h2>Playlist</h2>
+      <!-- 플레이리스트를 표시할 영역 -->
+    </div>
+    <div id="results"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      // 플레이리스트를 저장할 배열
+      var playlist = [];
+
+      // 음악을 플레이리스트에 추가하는 함수
+      function addToPlaylist(track) {
+        playlist.push(track);
+        renderPlaylist();
+      }
+
+      // 음악을 플레이리스트에서 삭제하는 함수
+      function removeFromPlaylist(index) {
+        playlist.splice(index, 1);
+        renderPlaylist();
+      }
+
+      // 플레이리스트를 화면에 표시하는 함수
+      function renderPlaylist() {
+        var playlistDiv = document.getElementById("playlist");
+        playlistDiv.innerHTML = "<h2>Playlist</h2>";
+
+        if (playlist.length === 0) {
+          playlistDiv.innerHTML += "플레이리스트에 곡이 없습니다.";
+        } else {
+          playlist.forEach(function (track, index) {
+            playlistDiv.innerHTML += `
+          <div class="playlist-item">
+            <img src="${track.images.coverart}" alt="${track.title}">
+            <div>
+              <p>${track.title} by ${track.subtitle}</p>
+              <button onclick="removeFromPlaylist(${index})">삭제</button>
+            </div>
+          </div>
+        `;
+          });
+        }
+      }
+
+      // 음악 검색 및 결과를 표시하는 함수
+      function searchMusic() {
+        var searchTerm = document.getElementById("searchInput").value.trim();
+
+        if (searchTerm === "") {
+          alert("Please enter a search keyword.");
+          return;
+        }
+
+        const settings = {
+          async: true,
+          crossDomain: true,
+          url: `https://shazam.p.rapidapi.com/search?term=${encodeURIComponent(
+            searchTerm
+          )}&locale=en-US&offset=0&limit=5`,
+          method: "GET",
+          headers: {
+            "X-RapidAPI-Key":
+              "4bfc3688camsh12800d4b708e311p145c32jsn23930dbf328c",
+            "X-RapidAPI-Host": "shazam.p.rapidapi.com",
+          },
+        };
+
+        $.ajax(settings).done(function (response) {
+          displayResults(response);
+        });
+      }
+
+      // 검색 결과를 화면에 표시하고 플레이리스트에 추가하는 함수
+      function displayResults(response) {
+        var resultsDiv = document.getElementById("results");
+        resultsDiv.innerHTML = ""; // Clear previous results
+
+        if (response.tracks.hits.length === 0) {
+          resultsDiv.innerHTML = "No results found.";
+          return;
+        }
+
+        response.tracks.hits.forEach(function (hit) {
+          var track = hit.track;
+          var artist = track.subtitle;
+          var title = track.title;
+          var imageUrl = track.images.coverart;
+          var streamingLink = track.hub.options[0].actions[0].uri; // 첫 번째 스트리밍 링크를 가져옴
+
+          var resultElement = document.createElement("div");
+          resultElement.classList.add("card"); // 카드 클래스 추가
+
+          resultElement.innerHTML = `
+            <img src="${imageUrl}" alt="${title} by ${artist}">
+            <p><strong>Title: ${title}</strong></p>
+            <p>Artist: ${artist}</p>
+            <a href="${streamingLink}" target="_blank">Listen on Apple Music</a>
+            <button onclick='addToPlaylist(${JSON.stringify(track).replace(
+              /'/g,
+              "&apos;"
+            )})'>Add to Playlist</button>
+          `;
+
+          resultsDiv.appendChild(resultElement);
+        });
+      }
+    </script>
+  </body>
+</html>
